@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Directorio de Redes Sectoriales del Proyecto Mesoamérica">
     <title>Directorio de Redes Sectoriales - Proyecto Mesoamérica</title>
+    
+    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Estilos personalizados -->
     <link rel="stylesheet" href="directorio-styles.css">
 </head>
 <body>
@@ -26,9 +31,9 @@
     <div class="row">
         <!-- Sidebar de Sectores -->
         <aside class="col-lg-3 col-md-4 sidebar-container">
-            <div class="categories-wrapper sticky-top">
+            <div class="categories-wrapper">
                 <!-- Botón Solicitar Registro -->
-                <a href="https://forms.office.com/your-form-url" 
+                <a href="https://forms.office.com/r/6hQnhAduHd" 
                    target="_blank" 
                    class="btn btn-primary btn-block btn-new-register mb-4"
                    onclick="registrarEvento('Solicitar Nuevo Registro', 'Clic')">
@@ -40,24 +45,24 @@
                 </h5>
                 <ul id="sectors" class="list-group categories-list">
                     <li data-sector="all" class="list-group-item active">
-                        <i class="fas fa-th-large"></i> Todos
-                        <span class="badge badge-pill badge-primary float-right" id="count-all">0</span>
+                        <span><i class="fas fa-th-large"></i> Todos</span>
+                        <span class="badge badge-pill badge-primary" id="count-all">0</span>
                     </li>
                     <li data-sector="Energía" class="list-group-item">
-                        <i class="fas fa-bolt"></i> Energía
-                        <span class="badge badge-pill badge-secondary float-right" id="count-Energía">0</span>
+                        <span><i class="fas fa-bolt"></i> Energía</span>
+                        <span class="badge badge-pill badge-secondary" id="count-Energía">0</span>
                     </li>
                     <li data-sector="Transformación Digital" class="list-group-item">
-                        <i class="fas fa-laptop-code"></i> Transformación Digital
-                        <span class="badge badge-pill badge-secondary float-right" id="count-Transformación Digital">0</span>
+                        <span><i class="fas fa-laptop-code"></i> Transformación Digital</span>
+                        <span class="badge badge-pill badge-secondary" id="count-Transformación Digital">0</span>
                     </li>
                     <li data-sector="Transporte" class="list-group-item">
-                        <i class="fas fa-truck"></i> Transporte
-                        <span class="badge badge-pill badge-secondary float-right" id="count-Transporte">0</span>
+                        <span><i class="fas fa-truck"></i> Transporte</span>
+                        <span class="badge badge-pill badge-secondary" id="count-Transporte">0</span>
                     </li>
                     <li data-sector="Facilitación del Comercio" class="list-group-item">
-                        <i class="fas fa-handshake"></i> Facilitación del Comercio
-                        <span class="badge badge-pill badge-secondary float-right" id="count-Facilitación del Comercio">0</span>
+                        <span><i class="fas fa-handshake"></i> Facilitación del Comercio</span>
+                        <span class="badge badge-pill badge-secondary" id="count-Facilitación del Comercio">0</span>
                     </li>
                 </ul>
 
@@ -87,15 +92,21 @@
                             <input type="text" 
                                    id="searchInput" 
                                    class="form-control search-input" 
-                                   placeholder="Buscar por nombre, institución, cargo o correo..."
-                                   autocomplete="off">
-                            <button id="clearSearch" class="btn btn-sm clear-search" style="display: none;">
+                                   placeholder="Buscar por nombre, institución, cargo, país o correo..."
+                                   autocomplete="off"
+                                   aria-label="Buscar miembros">
+                            <button id="clearSearch" 
+                                    class="btn btn-sm clear-search" 
+                                    style="display: none;"
+                                    aria-label="Limpiar búsqueda">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <select id="sortSelect" class="form-control custom-select">
+                        <select id="sortSelect" 
+                                class="form-control custom-select"
+                                aria-label="Ordenar resultados">
                             <option value="name-asc">Nombre (A-Z)</option>
                             <option value="name-desc">Nombre (Z-A)</option>
                             <option value="country-asc">País (A-Z)</option>
@@ -110,10 +121,16 @@
                         <i class="fas fa-users"></i> Mostrando <strong>0</strong> miembros
                     </span>
                     <div class="view-toggle">
-                        <button id="viewGrid" class="btn btn-sm btn-outline-secondary" title="Vista en cuadrícula">
+                        <button id="viewGrid" 
+                                class="btn btn-sm btn-outline-secondary" 
+                                title="Vista en cuadrícula"
+                                aria-label="Vista en cuadrícula">
                             <i class="fas fa-th"></i>
                         </button>
-                        <button id="viewList" class="btn btn-sm btn-outline-secondary active" title="Vista en lista">
+                        <button id="viewList" 
+                                class="btn btn-sm btn-outline-secondary active" 
+                                title="Vista en lista"
+                                aria-label="Vista en lista">
                             <i class="fas fa-list"></i>
                         </button>
                     </div>
@@ -159,13 +176,13 @@
 </div>
 
 <!-- Modal de Detalle de Miembro -->
-<div class="modal fade" id="memberModal" tabindex="-1" role="dialog">
+<div class="modal fade" id="memberModal" tabindex="-1" role="dialog" aria-labelledby="modalMemberName" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalMemberName">Detalle del Miembro</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body" id="modalMemberBody">
@@ -175,10 +192,12 @@
     </div>
 </div>
 
+<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script src="members-data.js"></script>
+<!-- CORRECCIÓN: El archivo se llama member-data.js, no members-data.js -->
+<script src="member-data.js"></script>
 <script src="directorio-script.js"></script>
 </body>
 </html>

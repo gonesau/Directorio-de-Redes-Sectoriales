@@ -12,7 +12,7 @@ const CONFIG = {
     DEBOUNCE_DELAY: 300,
     TOAST_DURATION: 3000,
     MAX_PAGINATION_BUTTONS: 7,
-    MICROSOFT_FORM_URL: 'https://forms.office.com/your-form-url' // Reemplazar con URL real
+    MICROSOFT_FORM_URL: 'https://forms.office.com/r/6hQnhAduHd' 
 };
 
 // ===========================================
