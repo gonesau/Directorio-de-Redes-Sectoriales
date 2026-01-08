@@ -2,14 +2,14 @@
  * DIRECTORIO DE REDES SECTORIALES - PROYECTO MESOAMÉRICA
  * =========================================================
  * Sistema optimizado de gestión de directorio sin base de datos
- * Versión 1.3 - Con exportación a PDF corregida (sin emojis)
+ * Versión 1.3 - Con exportación a PDF corregida
  */
 
 // ===========================================
 // CONFIGURACIÓN GLOBAL
 // ===========================================
 const CONFIG = {
-    ITEMS_PER_PAGE: 9,
+    ITEMS_PER_PAGE: 5,
     DEBOUNCE_DELAY: 300,
     TOAST_DURATION: 3000,
     MAX_PAGINATION_BUTTONS: 7,
