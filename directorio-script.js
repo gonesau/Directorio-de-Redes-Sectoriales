@@ -2,6 +2,7 @@
  * DIRECTORIO DE REDES SECTORIALES - PROYECTO MESOAMÉRICA
  * =========================================================
  * Sistema optimizado de gestión de directorio sin base de datos
+ * Versión 1.3 - Con exportación a PDF corregida (sin emojis)
  */
 
 // ===========================================
@@ -12,7 +13,7 @@ const CONFIG = {
     DEBOUNCE_DELAY: 300,
     TOAST_DURATION: 3000,
     MAX_PAGINATION_BUTTONS: 7,
-    MICROSOFT_FORM_URL: 'https://forms.office.com/r/6hQnhAduHd' 
+    MICROSOFT_FORM_URL: 'https://forms.office.com/r/6hQnhAduHd'
 };
 
 // ===========================================
@@ -45,7 +46,8 @@ const DOM = {
     viewGrid: document.getElementById('viewGrid'),
     viewList: document.getElementById('viewList'),
     totalMembers: document.getElementById('totalMembers'),
-    totalCountries: document.getElementById('totalCountries')
+    totalCountries: document.getElementById('totalCountries'),
+    downloadPdfBtn: document.getElementById('downloadPdfBtn')
 };
 
 // ===========================================
@@ -93,13 +95,27 @@ async function registrarEvento(accion, detalle) {
     try {
         const response = await fetch('guardar_registro_directorio.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ accion, detalle, timestamp: new Date().toISOString() })
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ 
+                accion: accion, 
+                detalle: detalle, 
+                timestamp: new Date().toISOString() 
+            })
         });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
-        console.log('Evento registrado:', data);
+        console.log('✅ Evento registrado:', data);
+        
     } catch (error) {
-        console.error('Error al registrar evento:', error);
+        console.error('❌ Error al registrar evento:', error);
+        // No mostrar error al usuario, solo logear en consola
     }
 }
 
@@ -150,6 +166,229 @@ function sortMembers(membersArray, sortType) {
             return sorted.sort((a, b) => a.institucion.localeCompare(b.institucion));
         default:
             return sorted;
+    }
+}
+
+// ===========================================
+// EXPORTACIÓN A PDF (VERSIÓN CORREGIDA)
+// ===========================================
+
+async function downloadPDF() {
+    try {
+        showToast('Generando PDF...', 2000);
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Configuración
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 15;
+        const lineHeight = 7;
+        let yPosition = margin;
+        
+        // Configurar fuente para soportar caracteres especiales (acentos, ñ, etc.)
+        doc.setFont("helvetica");
+        
+        // Función para agregar nueva página si es necesario
+        function checkPageBreak(neededSpace = 20) {
+            if (yPosition + neededSpace > pageHeight - margin) {
+                doc.addPage();
+                yPosition = margin;
+                return true;
+            }
+            return false;
+        }
+        
+        // Función para agregar texto con word wrap
+        function addWrappedText(text, x, y, maxWidth, fontSize = 10) {
+            doc.setFontSize(fontSize);
+            const lines = doc.splitTextToSize(text, maxWidth);
+            lines.forEach((line, index) => {
+                if (index > 0) {
+                    checkPageBreak();
+                }
+                doc.text(line, x, y + (index * lineHeight));
+            });
+            return lines.length * lineHeight;
+        }
+        
+        // Encabezado
+        doc.setFillColor(0, 123, 255);
+        doc.rect(0, 0, pageWidth, 30, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(18);
+        doc.setFont(undefined, 'bold');
+        doc.text('Directorio de Redes Sectoriales', pageWidth / 2, 15, { align: 'center' });
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'normal');
+        doc.text('Proyecto Mesoamerica', pageWidth / 2, 23, { align: 'center' });
+        
+        yPosition = 40;
+        doc.setTextColor(0, 0, 0);
+        
+        // Información de filtros
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text('Filtros aplicados:', margin, yPosition);
+        yPosition += lineHeight;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(9);
+        
+        const sectorText = AppState.currentSector === 'all' ? 'Todos los sectores' : `Sector: ${AppState.currentSector}`;
+        doc.text(`  * ${sectorText}`, margin, yPosition);
+        yPosition += lineHeight;
+        
+        if (AppState.searchTerm) {
+            doc.text(`  * Busqueda: "${AppState.searchTerm}"`, margin, yPosition);
+            yPosition += lineHeight;
+        }
+        
+        doc.text(`  * Total de miembros: ${AppState.filteredMembers.length}`, margin, yPosition);
+        yPosition += lineHeight;
+        
+        const fecha = new Date().toLocaleDateString('es-ES', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        doc.text(`  * Fecha de generacion: ${fecha}`, margin, yPosition);
+        yPosition += lineHeight + 5;
+        
+        // Línea separadora
+        doc.setDrawColor(0, 123, 255);
+        doc.setLineWidth(0.5);
+        doc.line(margin, yPosition, pageWidth - margin, yPosition);
+        yPosition += 10;
+        
+        // Miembros
+        AppState.filteredMembers.forEach((member, index) => {
+            checkPageBreak(60);
+            
+            // Número de miembro
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(0, 123, 255);
+            doc.text(`${index + 1}.`, margin, yPosition);
+            yPosition += lineHeight;
+            
+            // Nombre
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            const nameHeight = addWrappedText(member.nombre, margin + 5, yPosition, pageWidth - margin * 2 - 5, 12);
+            yPosition += nameHeight;
+            
+            // Cargo
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'italic');
+            doc.setTextColor(100, 100, 100);
+            const cargoHeight = addWrappedText(member.cargo, margin + 5, yPosition, pageWidth - margin * 2 - 5, 9);
+            yPosition += cargoHeight;
+            
+            // Institución
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(0, 150, 200);
+            const instHeight = addWrappedText(member.institucion, margin + 5, yPosition, pageWidth - margin * 2 - 5, 9);
+            yPosition += instHeight + 2;
+            
+            // País
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(8);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Pais: ${member.pais}`, margin + 5, yPosition);
+            yPosition += lineHeight;
+            
+            // Sectores
+            const sectoresText = member.sector.join(', ');
+            doc.setTextColor(0, 123, 255);
+            doc.setFont(undefined, 'bold');
+            doc.text(`Sectores: ${sectoresText}`, margin + 5, yPosition);
+            yPosition += lineHeight + 2;
+            
+            // Contacto
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(8);
+            doc.setFont(undefined, 'normal');
+            
+            // Correo
+            doc.text(`Correo: ${member.correo}`, margin + 5, yPosition);
+            yPosition += lineHeight;
+            
+            // Teléfono
+            if (member.telefono) {
+                doc.text(`Telefono: ${member.telefono}`, margin + 5, yPosition);
+                yPosition += lineHeight;
+            }
+            
+            // WhatsApp
+            if (member.whatsapp) {
+                doc.text(`WhatsApp: ${member.whatsapp}`, margin + 5, yPosition);
+                yPosition += lineHeight;
+            }
+            
+            // Áreas de interés
+            if (member.areas_interes) {
+                checkPageBreak(20);
+                yPosition += 2;
+                doc.setFontSize(8);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(80, 80, 80);
+                doc.text('Areas de interes:', margin + 5, yPosition);
+                yPosition += lineHeight - 2;
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(100, 100, 100);
+                const areasHeight = addWrappedText(member.areas_interes, margin + 5, yPosition, pageWidth - margin * 2 - 5, 8);
+                yPosition += areasHeight;
+            }
+            
+            // Temas de apoyo
+            if (member.temas_apoyo) {
+                checkPageBreak(20);
+                yPosition += 2;
+                doc.setFontSize(8);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(80, 80, 80);
+                doc.text('Temas de apoyo:', margin + 5, yPosition);
+                yPosition += lineHeight - 2;
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(100, 100, 100);
+                const temasHeight = addWrappedText(member.temas_apoyo, margin + 5, yPosition, pageWidth - margin * 2 - 5, 8);
+                yPosition += temasHeight;
+            }
+            
+            // Línea separadora entre miembros
+            yPosition += 3;
+            doc.setDrawColor(220, 220, 220);
+            doc.setLineWidth(0.3);
+            doc.line(margin, yPosition, pageWidth - margin, yPosition);
+            yPosition += 8;
+        });
+        
+        // Pie de página en todas las páginas
+        const totalPages = doc.internal.pages.length - 1;
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150);
+            doc.text(
+                `Pagina ${i} de ${totalPages} | Proyecto Mesoamerica - Directorio de Redes Sectoriales`,
+                pageWidth / 2,
+                pageHeight - 10,
+                { align: 'center' }
+            );
+        }
+        
+        // Guardar PDF
+        const fileName = `Directorio_Redes_PM_${fecha.replace(/ /g, '_')}.pdf`;
+        doc.save(fileName);
+        
+        showToast('PDF descargado exitosamente!');
+        registrarEvento('Descargar PDF', `${AppState.filteredMembers.length} miembros`);
+        
+    } catch (error) {
+        console.error('Error al generar PDF:', error);
+        showToast('Error al generar el PDF. Revisa la consola para mas detalles.');
     }
 }
 
@@ -668,6 +907,13 @@ DOM.viewList.addEventListener('click', () => {
     registrarEvento('Cambio Vista', 'Lista');
 });
 
+// Event listener para botón de descarga PDF
+if (DOM.downloadPdfBtn) {
+    DOM.downloadPdfBtn.addEventListener('click', () => {
+        downloadPDF();
+    });
+}
+
 $('#memberModal').on('hidden.bs.modal', function () {
     // Limpiar modal al cerrar
 });
@@ -693,3 +939,4 @@ document.addEventListener('DOMContentLoaded', () => {
 window.registrarEvento = registrarEvento;
 window.showMemberDetail = showMemberDetail;
 window.shareContact = shareContact;
+window.downloadPDF = downloadPDF;
