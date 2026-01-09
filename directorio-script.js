@@ -2,7 +2,7 @@
  * DIRECTORIO DE REDES SECTORIALES - PROYECTO MESOAMÉRICA
  * =========================================================
  * Sistema optimizado de gestión de directorio sin base de datos
- * Versión 1.3 - Con exportación a PDF corregida
+ * Versión 1.4 - Con subcategorías y filtros mejorados
  */
 
 // ===========================================
@@ -22,6 +22,7 @@ const CONFIG = {
 const AppState = {
     currentPage: 1,
     currentSector: 'all',
+    currentSubsector: 'all',
     currentSort: 'name-asc',
     currentView: 'list',
     filteredMembers: [],
@@ -133,6 +134,13 @@ function filterMembers() {
         );
     }
     
+    // Filtrar por subsector
+    if (AppState.currentSubsector !== 'all') {
+        filtered = filtered.filter(member => 
+            member.subsector && member.subsector.includes(AppState.currentSubsector)
+        );
+    }
+    
     // Filtrar por búsqueda
     if (AppState.searchTerm) {
         const normalizedSearch = normalizeText(AppState.searchTerm);
@@ -142,7 +150,16 @@ function filterMembers() {
             const positionMatch = normalizeText(member.cargo).includes(normalizedSearch);
             const emailMatch = normalizeText(member.correo).includes(normalizedSearch);
             const countryMatch = normalizeText(member.pais).includes(normalizedSearch);
-            return nameMatch || institutionMatch || positionMatch || emailMatch || countryMatch;
+            
+            // Búsqueda en subsectores
+            let subsectorMatch = false;
+            if (member.subsector && member.subsector.length > 0) {
+                subsectorMatch = member.subsector.some(sub => 
+                    normalizeText(sub).includes(normalizedSearch)
+                );
+            }
+            
+            return nameMatch || institutionMatch || positionMatch || emailMatch || countryMatch || subsectorMatch;
         });
     }
     
@@ -240,6 +257,11 @@ async function downloadPDF() {
         doc.text(`  * ${sectorText}`, margin, yPosition);
         yPosition += lineHeight;
         
+        if (AppState.currentSubsector !== 'all') {
+            doc.text(`  * Subsector: ${AppState.currentSubsector}`, margin, yPosition);
+            yPosition += lineHeight;
+        }
+        
         if (AppState.searchTerm) {
             doc.text(`  * Busqueda: "${AppState.searchTerm}"`, margin, yPosition);
             yPosition += lineHeight;
@@ -304,7 +326,18 @@ async function downloadPDF() {
             doc.setTextColor(0, 123, 255);
             doc.setFont(undefined, 'bold');
             doc.text(`Sectores: ${sectoresText}`, margin + 5, yPosition);
-            yPosition += lineHeight + 2;
+            yPosition += lineHeight;
+            
+            // Subsectores (si existen)
+            if (member.subsector && member.subsector.length > 0) {
+                const subsectoresText = member.subsector.join(', ');
+                doc.setTextColor(0, 100, 180);
+                doc.setFont(undefined, 'normal');
+                doc.text(`Subsectores: ${subsectoresText}`, margin + 5, yPosition);
+                yPosition += lineHeight;
+            }
+            
+            yPosition += 2;
             
             // Contacto
             doc.setTextColor(0, 0, 0);
@@ -321,7 +354,7 @@ async function downloadPDF() {
                 yPosition += lineHeight;
             }
             
-            // WhatsApp
+            // WhatsApp (solo si existe)
             if (member.whatsapp) {
                 doc.text(`WhatsApp: ${member.whatsapp}`, margin + 5, yPosition);
                 yPosition += lineHeight;
@@ -403,6 +436,15 @@ function generateMemberHTML(member) {
         </span>`
     ).join('');
     
+    // Agregar badges de subsectores si existen
+    const subsectorBadges = member.subsector && member.subsector.length > 0 
+        ? member.subsector.map(subsect => 
+            `<span class="badge badge-info">
+                <i class="fas fa-tag"></i> ${subsect}
+            </span>`
+        ).join('')
+        : '';
+    
     const whatsappBtn = member.whatsapp ? 
         `<a href="https://wa.me/${member.whatsapp.replace(/[^0-9]/g, '')}" 
             target="_blank" 
@@ -424,7 +466,7 @@ function generateMemberHTML(member) {
                     <span class="member-country">
                         <i class="fas fa-map-marker-alt"></i> ${member.pais}
                     </span>
-                    <div class="member-sectors">${sectorBadges}</div>
+                    <div class="member-sectors">${sectorBadges} ${subsectorBadges}</div>
                     <div class="member-contact">
                         <div class="contact-item">
                             <i class="fas fa-envelope"></i>
@@ -449,7 +491,7 @@ function generateMemberHTML(member) {
                         ${whatsappBtn}
                         <button class="btn btn-secondary btn-sm" 
                                 onclick="shareContact('${member.id}')">
-                            <i class="fas fa-share-alt"></i> Compartir
+                            <i class="fas fa-copy"></i> Copiar Información
                         </button>
                     </div>
                 </div>
@@ -468,7 +510,7 @@ function generateMemberHTML(member) {
                     <span class="member-country">
                         <i class="fas fa-map-marker-alt"></i> ${member.pais}
                     </span>
-                    <div class="member-sectors">${sectorBadges}</div>
+                    <div class="member-sectors">${sectorBadges} ${subsectorBadges}</div>
                     <div class="member-contact">
                         <div class="contact-item">
                             <i class="fas fa-envelope"></i>
@@ -503,7 +545,7 @@ function generateMemberHTML(member) {
                         ${whatsappBtn}
                         <button class="btn btn-secondary btn-sm" 
                                 onclick="shareContact('${member.id}')">
-                            <i class="fas fa-share-alt"></i> Compartir
+                            <i class="fas fa-copy"></i> Copiar Información
                         </button>
                     </div>
                 </div>
@@ -513,13 +555,10 @@ function generateMemberHTML(member) {
 }
 
 function getSectorIcon(sector) {
-    const icons = {
-        'Energía': 'fa-bolt',
-        'Transformación Digital': 'fa-laptop-code',
-        'Transporte': 'fa-truck',
-        'Facilitación del Comercio': 'fa-handshake'
-    };
-    return icons[sector] || 'fa-circle';
+    if (sectorStructure[sector]) {
+        return sectorStructure[sector].icon;
+    }
+    return 'fa-circle';
 }
 
 // ===========================================
@@ -659,25 +698,35 @@ function updateResultsCount() {
 function updateSectorCounts() {
     document.getElementById('count-all').textContent = members.length;
     
-    const counts = {
-        'Energía': 0,
-        'Transformación Digital': 0,
-        'Transporte': 0,
-        'Facilitación del Comercio': 0
-    };
-    
-    members.forEach(member => {
-        member.sector.forEach(sect => {
-            if (counts.hasOwnProperty(sect)) {
-                counts[sect]++;
+    // Contar miembros por sector
+    Object.keys(sectorStructure).forEach(sector => {
+        let count = 0;
+        members.forEach(member => {
+            if (member.sector.includes(sector)) {
+                count++;
             }
         });
-    });
-    
-    Object.keys(counts).forEach(sect => {
-        const countElement = document.getElementById(`count-${sect}`);
+        
+        const countElement = document.getElementById(`count-${sector}`);
         if (countElement) {
-            countElement.textContent = counts[sect];
+            countElement.textContent = count;
+        }
+        
+        // Contar subsectores
+        if (sectorStructure[sector].subsectors.length > 0) {
+            sectorStructure[sector].subsectors.forEach(subsector => {
+                let subCount = 0;
+                members.forEach(member => {
+                    if (member.subsector && member.subsector.includes(subsector)) {
+                        subCount++;
+                    }
+                });
+                
+                const subCountElement = document.getElementById(`count-${subsector}`);
+                if (subCountElement) {
+                    subCountElement.textContent = subCount;
+                }
+            });
         }
     });
 }
@@ -689,11 +738,76 @@ function updateStatistics() {
 }
 
 // ===========================================
+// RENDERIZADO DEL SIDEBAR CON SUBSECTORES
+// ===========================================
+
+function renderSectorsSidebar() {
+    const sectorsContainer = document.getElementById('sectors');
+    sectorsContainer.innerHTML = '';
+    
+    // Botón "Todos"
+    const allItem = document.createElement('li');
+    allItem.setAttribute('data-sector', 'all');
+    allItem.className = 'list-group-item active sector-item';
+    allItem.innerHTML = `
+        <span><i class="fas fa-th-large"></i> Todos</span>
+        <span class="badge badge-pill badge-primary" id="count-all">0</span>
+    `;
+    sectorsContainer.appendChild(allItem);
+    
+    // Iterar sobre cada sector
+    Object.keys(sectorStructure).forEach(sector => {
+        const sectorData = sectorStructure[sector];
+        const hasSubsectors = sectorData.subsectors.length > 0;
+        
+        const sectorItem = document.createElement('li');
+        sectorItem.setAttribute('data-sector', sector);
+        sectorItem.className = `list-group-item sector-item ${hasSubsectors ? 'has-subsectors' : ''}`;
+        
+        sectorItem.innerHTML = `
+            <div class="sector-header">
+                <span class="sector-name">
+                    <i class="fas ${sectorData.icon}"></i> ${sector}
+                    ${hasSubsectors ? '<i class="fas fa-chevron-down toggle-icon"></i>' : ''}
+                </span>
+                <span class="badge badge-pill badge-secondary" id="count-${sector}">0</span>
+            </div>
+        `;
+        
+        sectorsContainer.appendChild(sectorItem);
+        
+        // Si tiene subsectores, crear la lista desplegable
+        if (hasSubsectors) {
+            const subsectorsList = document.createElement('ul');
+            subsectorsList.className = 'subsectors-list';
+            subsectorsList.style.display = 'none';
+            
+            sectorData.subsectors.forEach(subsector => {
+                const subsectorItem = document.createElement('li');
+                subsectorItem.setAttribute('data-sector', sector);
+                subsectorItem.setAttribute('data-subsector', subsector);
+                subsectorItem.className = 'list-group-item subsector-item';
+                
+                subsectorItem.innerHTML = `
+                    <span><i class="fas fa-tag"></i> ${subsector}</span>
+                    <span class="badge badge-pill badge-secondary" id="count-${subsector}">0</span>
+                `;
+                
+                subsectorsList.appendChild(subsectorItem);
+            });
+            
+            sectorsContainer.appendChild(subsectorsList);
+        }
+    });
+}
+
+// ===========================================
 // FUNCIONES DE INTERACCIÓN
 // ===========================================
 
-function showMembers(sector) {
+function showMembers(sector, subsector = 'all') {
     AppState.currentSector = sector;
+    AppState.currentSubsector = subsector;
     AppState.currentPage = 1;
     AppState.filteredMembers = filterMembers();
     displayMembers();
@@ -713,6 +827,14 @@ function showMemberDetail(memberId) {
             <i class="fas ${getSectorIcon(sect)}"></i> ${sect}
         </span>`
     ).join('');
+    
+    const subsectorBadges = member.subsector && member.subsector.length > 0 
+        ? member.subsector.map(subsect => 
+            `<span class="badge badge-info mr-1 mb-1">
+                <i class="fas fa-tag"></i> ${subsect}
+            </span>`
+        ).join('')
+        : '';
     
     const whatsappBtn = member.whatsapp ? 
         `<a href="https://wa.me/${member.whatsapp.replace(/[^0-9]/g, '')}" 
@@ -771,6 +893,12 @@ function showMemberDetail(memberId) {
                 <div class="modal-info-value">${sectorBadges}</div>
             </div>
             
+            ${subsectorBadges ? `
+            <div class="modal-info-item mt-2">
+                <div class="modal-info-label">Subsectores</div>
+                <div class="modal-info-value">${subsectorBadges}</div>
+            </div>` : ''}
+            
             <div class="modal-info-item mt-3">
                 <div class="modal-info-label">Áreas de Interés o Experiencia</div>
                 <div class="modal-info-value">${member.areas_interes}</div>
@@ -790,7 +918,7 @@ function showMemberDetail(memberId) {
                 ${whatsappBtn}
                 <button class="btn btn-secondary ml-2" 
                         onclick="shareContact('${member.id}')">
-                    <i class="fas fa-share-alt"></i> Compartir Contacto
+                    <i class="fas fa-copy"></i> Copiar Información
                 </button>
             </div>
         </div>
@@ -804,21 +932,30 @@ function shareContact(memberId) {
     const member = members.find(m => m.id === memberId);
     if (!member) return;
     
-    const contactText = `
+    let contactText = `
 Contacto: ${member.nombre}
 Cargo: ${member.cargo}
 Institución: ${member.institucion}
 País: ${member.pais}
-Correo: ${member.correo}
-${member.telefono ? 'Teléfono: ' + member.telefono : ''}
-${member.whatsapp ? 'WhatsApp: ' + member.whatsapp : ''}
-    `.trim();
+Correo: ${member.correo}`;
+
+    if (member.telefono) {
+        contactText += `
+Teléfono: ${member.telefono}`;
+    }
+
+    if (member.whatsapp) {
+        contactText += `
+WhatsApp: ${member.whatsapp}`;
+    }
+
+    contactText = contactText.trim();
     
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(contactText)
             .then(() => {
-                showToast('¡Contacto copiado al portapapeles!');
-                registrarEvento('Compartir Contacto', member.nombre);
+                showToast('¡Información copiada al portapapeles!');
+                registrarEvento('Copiar Información', member.nombre);
             })
             .catch(err => {
                 copyToClipboardFallback(contactText);
@@ -835,7 +972,7 @@ function copyToClipboardFallback(text) {
     tempInput.select();
     document.execCommand('copy');
     document.body.removeChild(tempInput);
-    showToast('¡Contacto copiado al portapapeles!');
+    showToast('¡Información copiada al portapapeles!');
 }
 
 function changeView(view) {
@@ -874,18 +1011,61 @@ DOM.clearSearch.addEventListener('click', () => {
     DOM.searchInput.focus();
 });
 
+// Event delegation para sectores y subsectores
 DOM.sectors.addEventListener('click', (e) => {
-    if (e.target.tagName === 'LI' || e.target.parentElement.tagName === 'LI') {
-        const li = e.target.tagName === 'LI' ? e.target : e.target.parentElement;
-        
+    const target = e.target.closest('.sector-item, .subsector-item');
+    if (!target) return;
+    
+    // Si es un sector con subsectores, toggle el dropdown
+    if (target.classList.contains('sector-item') && target.classList.contains('has-subsectors')) {
+        const sectorHeader = target.querySelector('.sector-header');
+        if (e.target.closest('.sector-header') === sectorHeader) {
+            const subsectorsList = target.nextElementSibling;
+            const toggleIcon = target.querySelector('.toggle-icon');
+            
+            if (subsectorsList && subsectorsList.classList.contains('subsectors-list')) {
+                const isVisible = subsectorsList.style.display === 'block';
+                subsectorsList.style.display = isVisible ? 'none' : 'block';
+                
+                if (toggleIcon) {
+                    toggleIcon.classList.toggle('fa-chevron-down', isVisible);
+                    toggleIcon.classList.toggle('fa-chevron-up', !isVisible);
+                }
+            }
+            
+            // Seleccionar el sector principal
+            document.querySelectorAll('#sectors .list-group-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            target.classList.add('active');
+            
+            const sector = target.getAttribute('data-sector');
+            showMembers(sector, 'all');
+            registrarEvento('Filtro Sector', sector);
+        }
+    } 
+    // Si es un sector sin subsectores
+    else if (target.classList.contains('sector-item')) {
         document.querySelectorAll('#sectors .list-group-item').forEach(item => {
             item.classList.remove('active');
         });
-        li.classList.add('active');
+        target.classList.add('active');
         
-        const sector = li.getAttribute('data-sector');
-        showMembers(sector);
+        const sector = target.getAttribute('data-sector');
+        showMembers(sector, 'all');
         registrarEvento('Filtro Sector', sector);
+    }
+    // Si es un subsector
+    else if (target.classList.contains('subsector-item')) {
+        document.querySelectorAll('#sectors .list-group-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        target.classList.add('active');
+        
+        const sector = target.getAttribute('data-sector');
+        const subsector = target.getAttribute('data-subsector');
+        showMembers(sector, subsector);
+        registrarEvento('Filtro Subsector', `${sector} > ${subsector}`);
     }
 });
 
@@ -923,6 +1103,9 @@ $('#memberModal').on('hidden.bs.modal', function () {
 // ===========================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Renderizar sidebar con sectores y subsectores
+    renderSectorsSidebar();
+    
     AppState.filteredMembers = filterMembers();
     
     updateSectorCounts();

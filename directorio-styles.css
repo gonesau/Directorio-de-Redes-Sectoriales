@@ -2,7 +2,7 @@
  * DIRECTORIO DE REDES SECTORIALES - PROYECTO MESOAMÉRICA
  * ========================================================
  * Estilos optimizados para el directorio de miembros
- * Version: 1.1 (Mejorada)
+ * Version: 1.2 (Con soporte para subsectores)
  */
 
 /* ===========================================
@@ -215,10 +215,77 @@ a:hover {
 
 .categories-list {
     border-radius: var(--border-radius);
-    overflow: hidden;
+    overflow: visible;
 }
 
-.categories-list .list-group-item {
+/* Estilos para sectores principales */
+.categories-list .sector-item {
+    border: none;
+    border-bottom: 1px solid #dee2e6;
+    cursor: pointer;
+    transition: var(--transition);
+    padding: 0;
+}
+
+.categories-list .sector-item:last-of-type {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.categories-list .sector-item .sector-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+}
+
+.categories-list .sector-item .sector-name {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex: 1;
+}
+
+.categories-list .sector-item i {
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.categories-list .sector-item .toggle-icon {
+    margin-left: auto;
+    font-size: 0.8rem;
+    transition: var(--transition);
+}
+
+.categories-list .sector-item:hover {
+    background-color: #e9ecef;
+}
+
+.categories-list .sector-item:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
+}
+
+.categories-list .sector-item.active {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 500;
+}
+
+.categories-list .sector-item.active .toggle-icon {
+    color: white;
+}
+
+/* Estilos para la lista de subsectores */
+.subsectors-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background-color: #f8f9fa;
+    border-left: 3px solid var(--primary-color);
+}
+
+.subsector-item {
     border: none;
     border-bottom: 1px solid #dee2e6;
     cursor: pointer;
@@ -226,45 +293,54 @@ a:hover {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 1rem 0.6rem 2rem;
+    font-size: 0.9rem;
 }
 
-.categories-list .list-group-item:last-child {
+.subsector-item:last-child {
     border-bottom: none;
 }
 
-.categories-list .list-group-item > span:first-child {
+.subsector-item > span:first-child {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
 }
 
-.categories-list .list-group-item i {
-    width: 20px;
+.subsector-item i {
+    width: 16px;
     text-align: center;
     flex-shrink: 0;
+    font-size: 0.85rem;
 }
 
-.categories-list .list-group-item:hover {
-    background-color: #e9ecef;
-    transform: translateX(4px);
+.subsector-item:hover {
+    background-color: #e2e6ea;
+    padding-left: 2.25rem;
 }
 
-.categories-list .list-group-item:focus {
+.subsector-item:focus {
     outline: 2px solid var(--primary-color);
     outline-offset: -2px;
 }
 
-.categories-list .list-group-item.active {
-    background-color: var(--primary-color);
-    color: white;
+.subsector-item.active {
+    background-color: #cce5ff;
+    color: #004085;
     font-weight: 500;
+    border-left: 3px solid var(--primary-color);
 }
 
 .categories-list .badge {
     font-size: 0.75rem;
     padding: 0.25rem 0.5rem;
     flex-shrink: 0;
+}
+
+/* Badge para subsectores en tarjetas de miembros */
+.member-sectors .badge-info {
+    background-color: var(--info-color);
+    font-size: 0.7rem;
 }
 
 /* ===========================================
@@ -945,9 +1021,21 @@ a:hover {
         top: 10px;
     }
     
-    .categories-list .list-group-item {
+    .categories-list .sector-item {
         font-size: 0.9rem;
+    }
+    
+    .categories-list .sector-item .sector-header {
         padding: 0.6rem 0.8rem;
+    }
+    
+    .subsector-item {
+        padding: 0.5rem 0.8rem 0.5rem 1.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .subsector-item:hover {
+        padding-left: 1.75rem;
     }
 }
 
