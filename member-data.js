@@ -1,7 +1,7 @@
 /**
  * ARCHIVO DE DATOS DE MIEMBROS
  * ==============================
- * Este archivo contiene todos los miembros del directorio de redes sectoriales.
+ * Este archivo contiene todos los miembros del Red de Especialistas.
  * Para agregar un nuevo miembro, simplemente copia una entrada existente
  * y modifica sus valores.
  * 
@@ -15,9 +15,10 @@
  *   correo: "correo@institucion.com",
  *   telefono: "+00 0000-0000", // Opcional
  *   whatsapp: "+00 0000-0000", // Opcional
+ *   linkedin: "https://linkedin.com/in/username", // Opcional - URL completa de LinkedIn
  *   sector: ["Sector1", "Sector2"], // Puede tener múltiples sectores
  *   subsector: ["Subsector1", "Subsector2"], // Opcional - subcategorías específicas
- *   areas_interes: "Áreas de interés o experiencia",
+ *   areas_interes: "Áreas de interés o experiencia (separadas por coma)",
  *   temas_apoyo: "Temas en los que podría apoyar o compartir información",
  *   foto: "ruta/a/foto.jpg" // URL o ruta de la foto
  * }
@@ -63,7 +64,7 @@ const sectorStructure = {
     }
 };
 
-// Array de miembros (datos de ejemplo - reemplazar con datos reales)
+// Array de miembros - Datos de ejemplo actualizados
 const members = [
     {
         id: "member-001",
@@ -74,9 +75,10 @@ const members = [
         correo: "mf.lopez@energia.gob.mx",
         telefono: "+52 55 1234-5678",
         whatsapp: "+52 55 1234-5678",
+        linkedin: "https://linkedin.com/in/carlos-sanchez-energia",
         sector: ["Energía"],
         subsector: ["Energías Renovables", "Eficiencia Energética"],
-        areas_interes: "Energías renovables, Transición energética, Cooperación regional",
+        areas_interes: "Energías renovables, Transición energética, Cooperación regional, Política energética",
         temas_apoyo: "Implementación de proyectos de energía solar y eólica, Políticas de descarbonización, Financiamiento de proyectos energéticos",
         foto: "https://i.pravatar.cc/300?img=1"
     },
@@ -88,9 +90,11 @@ const members = [
         cargo: "Coordinador de Facilitación del Comercio",
         correo: "cmendoza@mineco.gob.gt",
         telefono: "+502 2222-3344",
+        whatsapp: "+502 5555-6666",
+        linkedin: "https://linkedin.com/in/carlos-mendoza-comercio",
         sector: ["Facilitación del Comercio", "Transporte"],
         subsector: [],
-        areas_interes: "Aduanas, Logística comercial, Ventanilla única",
+        areas_interes: "Aduanas, Logística comercial, Ventanilla única, Comercio internacional",
         temas_apoyo: "Modernización aduanera, Simplificación de trámites comerciales, Implementación de sistemas digitales para comercio exterior",
         foto: "https://i.pravatar.cc/300?img=12"
     },
@@ -103,9 +107,10 @@ const members = [
         correo: "asolis@micitt.go.cr",
         telefono: "+506 2549-1000",
         whatsapp: "+506 8888-9999",
+        linkedin: "https://linkedin.com/in/ana-solis-digital",
         sector: ["Transformación Digital"],
         subsector: ["Gobierno Digital", "Ciberseguridad"],
-        areas_interes: "Gobierno digital, Ciberseguridad, Conectividad",
+        areas_interes: "Gobierno digital, Ciberseguridad, Conectividad, Datos abiertos",
         temas_apoyo: "Estrategias de gobierno electrónico, Implementación de firma digital, Protección de datos personales, Alfabetización digital",
         foto: "https://i.pravatar.cc/300?img=5"
     },
@@ -118,9 +123,10 @@ const members = [
         correo: "rjimenez@mop.gob.sv",
         telefono: "+503 2222-8888",
         whatsapp: "+503 7777-9999",
+        linkedin: "https://linkedin.com/in/roberto-jimenez-transporte",
         sector: ["Transporte"],
         subsector: [],
-        areas_interes: "Infraestructura vial, Transporte multimodal, Logística",
+        areas_interes: "Infraestructura vial, Transporte multimodal, Logística, Movilidad sostenible",
         temas_apoyo: "Desarrollo de corredores logísticos, Mantenimiento de infraestructura vial, Transporte marítimo de corta distancia, Seguridad vial",
         foto: "https://i.pravatar.cc/300?img=15"
     },
@@ -132,9 +138,11 @@ const members = [
         cargo: "Gerente de Proyectos Renovables",
         correo: "lramirez@enee.hn",
         telefono: "+504 2239-5500",
+        whatsapp: "+504 9999-8888",
+        linkedin: "https://linkedin.com/in/lucia-ramirez-energia",
         sector: ["Energía"],
         subsector: ["Energías Renovables"],
-        areas_interes: "Hidroeléctricas, Energía solar, Eficiencia energética",
+        areas_interes: "Hidroeléctricas, Energía solar, Eficiencia energética, Almacenamiento",
         temas_apoyo: "Estudios de prefactibilidad de proyectos hidroeléctricos, Diseño de sistemas fotovoltaicos, Auditorías energéticas",
         foto: "https://i.pravatar.cc/300?img=9"
     },
@@ -147,9 +155,10 @@ const members = [
         correo: "jhernandez@ana.gob.pa",
         telefono: "+507 501-7000",
         whatsapp: "+507 6666-5555",
+        linkedin: "https://linkedin.com/in/jorge-hernandez-aduanas",
         sector: ["Facilitación del Comercio"],
         subsector: [],
-        areas_interes: "Tecnología aduanera, Comercio electrónico, Control aduanero",
+        areas_interes: "Tecnología aduanera, Comercio electrónico, Control aduanero, Blockchain",
         temas_apoyo: "Implementación de sistemas de gestión de riesgo aduanero, Digitalización de procesos aduaneros, Capacitación en procedimientos OEA",
         foto: "https://i.pravatar.cc/300?img=13"
     },
@@ -161,9 +170,11 @@ const members = [
         cargo: "Asesora de Transformación Digital",
         correo: "dvega@mintic.gov.co",
         telefono: "+57 1 344-3460",
+        whatsapp: "+57 300-123-4567",
+        linkedin: "https://linkedin.com/in/diana-vega-digital",
         sector: ["Transformación Digital"],
         subsector: ["Conectividad", "Gobierno Digital"],
-        areas_interes: "Inteligencia artificial, Big data, Smart cities",
+        areas_interes: "Inteligencia artificial, Big data, Smart cities, IoT",
         temas_apoyo: "Desarrollo de políticas de IA, Análisis de datos para toma de decisiones, Proyectos de ciudades inteligentes, Inclusión digital",
         foto: "https://i.pravatar.cc/300?img=10"
     },
@@ -176,9 +187,10 @@ const members = [
         correo: "mruiz@ine.gob.ni",
         telefono: "+505 2278-9900",
         whatsapp: "+505 8877-6655",
+        linkedin: "https://linkedin.com/in/manuel-ruiz-energia",
         sector: ["Energía"],
         subsector: ["Biocombustibles", "Energías Renovables"],
-        areas_interes: "Geotermia, Biomasa, Integración energética regional",
+        areas_interes: "Geotermia, Biomasa, Integración energética regional, Bioenergía",
         temas_apoyo: "Desarrollo de proyectos geotérmicos, Aprovechamiento de biomasa, Interconexión eléctrica regional, Regulación del sector energético",
         foto: "https://i.pravatar.cc/300?img=14"
     },
@@ -190,9 +202,11 @@ const members = [
         cargo: "Senior Transport Planner",
         correo: "portiz@publicutilities.gov.bz",
         telefono: "+501 822-2845",
+        whatsapp: "+501 666-7788",
+        linkedin: "https://linkedin.com/in/patricia-ortiz-transport",
         sector: ["Transporte", "Facilitación del Comercio"],
         subsector: [],
-        areas_interes: "Puertos marítimos, Logística regional, Facilitación fronteriza",
+        areas_interes: "Puertos marítimos, Logística regional, Facilitación fronteriza, Cadenas de suministro",
         temas_apoyo: "Desarrollo portuario, Simplificación de procedimientos fronterizos, Integración de cadenas logísticas, Transporte sostenible",
         foto: "https://i.pravatar.cc/300?img=24"
     },
@@ -205,9 +219,10 @@ const members = [
         correo: "emora@cne.gob.do",
         telefono: "+1 809 686-9595",
         whatsapp: "+1 829 555-6677",
+        linkedin: "https://linkedin.com/in/eduardo-mora-energia",
         sector: ["Energía"],
         subsector: ["Eficiencia Energética"],
-        areas_interes: "Planificación energética, Regulación del sector eléctrico, Eficiencia energética",
+        areas_interes: "Planificación energética, Regulación del sector eléctrico, Eficiencia energética, Transición justa",
         temas_apoyo: "Elaboración de planes energéticos nacionales, Marco regulatorio del sector eléctrico, Programas de eficiencia energética, Energía y cambio climático",
         foto: "https://i.pravatar.cc/300?img=11"
     },
@@ -219,9 +234,11 @@ const members = [
         cargo: "Coordinadora de Logística y Cadena de Suministro",
         correo: "gcastro@sct.gob.mx",
         telefono: "+52 55 5723-9300",
+        whatsapp: "+52 55 9876-5432",
+        linkedin: "https://linkedin.com/in/gabriela-castro-logistica",
         sector: ["Transporte", "Facilitación del Comercio"],
         subsector: [],
-        areas_interes: "Corredores logísticos, Transporte multimodal, Infraestructura portuaria",
+        areas_interes: "Corredores logísticos, Transporte multimodal, Infraestructura portuaria, Digitalización logística",
         temas_apoyo: "Diseño de corredores logísticos, Optimización de cadenas de suministro, Desarrollo de plataformas logísticas, Integración modal",
         foto: "https://i.pravatar.cc/300?img=20"
     },
@@ -234,9 +251,10 @@ const members = [
         correo: "arojas@cnee.gob.gt",
         telefono: "+502 2421-4800",
         whatsapp: "+502 5566-7788",
+        linkedin: "https://linkedin.com/in/andres-rojas-energia",
         sector: ["Energía"],
         subsector: ["Energías Renovables", "Eficiencia Energética"],
-        areas_interes: "Mercado eléctrico regional, Interconexión energética, Tarifas eléctricas",
+        areas_interes: "Mercado eléctrico regional, Interconexión energética, Tarifas eléctricas, Regulación",
         temas_apoyo: "Diseño de mercados eléctricos, Regulación tarifaria, Proyectos de interconexión eléctrica regional, Seguridad energética",
         foto: "https://i.pravatar.cc/300?img=33"
     }

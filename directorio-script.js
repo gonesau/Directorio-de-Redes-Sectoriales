@@ -1,8 +1,8 @@
 /**
- * DIRECTORIO DE REDES SECTORIALES - PROYECTO MESOAMÉRICA
+ * Red de Especialistas - PROYECTO MESOAMÉRICA
  * =========================================================
  * Sistema optimizado de gestión de directorio sin base de datos
- * Versión 1.4 - Con subcategorías y filtros mejorados
+ * Versión 2.0 - Refactorización completa con nuevo diseño
  */
 
 // ===========================================
@@ -14,6 +14,20 @@ const CONFIG = {
     TOAST_DURATION: 3000,
     MAX_PAGINATION_BUTTONS: 7,
     MICROSOFT_FORM_URL: 'https://forms.gle/HRkPxBwdpM7dMKEK8'
+};
+
+// Mapeo de países a emojis de banderas
+const COUNTRY_FLAGS = {
+    'México': '🇲🇽',
+    'Guatemala': '🇬🇹',
+    'El Salvador': '🇸🇻',
+    'Honduras': '🇭🇳',
+    'Nicaragua': '🇳🇮',
+    'Costa Rica': '🇨🇷',
+    'Panamá': '🇵🇦',
+    'Belice': '🇧🇿',
+    'República Dominicana': '🇩🇴',
+    'Colombia': '🇨🇴'
 };
 
 // ===========================================
@@ -92,6 +106,10 @@ function showToast(message, duration = CONFIG.TOAST_DURATION) {
     }, duration);
 }
 
+function getCountryFlag(country) {
+    return COUNTRY_FLAGS[country] || '🌎';
+}
+
 async function registrarEvento(accion, detalle) {
     try {
         const response = await fetch('guardar_registro_directorio.php', {
@@ -116,7 +134,6 @@ async function registrarEvento(accion, detalle) {
         
     } catch (error) {
         console.error('❌ Error al registrar evento:', error);
-        // No mostrar error al usuario, solo logear en consola
     }
 }
 
@@ -127,21 +144,18 @@ async function registrarEvento(accion, detalle) {
 function filterMembers() {
     let filtered = [...members];
     
-    // Filtrar por sector
     if (AppState.currentSector !== 'all') {
         filtered = filtered.filter(member => 
             member.sector.includes(AppState.currentSector)
         );
     }
     
-    // Filtrar por subsector
     if (AppState.currentSubsector !== 'all') {
         filtered = filtered.filter(member => 
             member.subsector && member.subsector.includes(AppState.currentSubsector)
         );
     }
     
-    // Filtrar por búsqueda
     if (AppState.searchTerm) {
         const normalizedSearch = normalizeText(AppState.searchTerm);
         filtered = filtered.filter(member => {
@@ -151,7 +165,6 @@ function filterMembers() {
             const emailMatch = normalizeText(member.correo).includes(normalizedSearch);
             const countryMatch = normalizeText(member.pais).includes(normalizedSearch);
             
-            // Búsqueda en subsectores
             let subsectorMatch = false;
             if (member.subsector && member.subsector.length > 0) {
                 subsectorMatch = member.subsector.some(sub => 
@@ -163,7 +176,6 @@ function filterMembers() {
         });
     }
     
-    // Ordenar
     filtered = sortMembers(filtered, AppState.currentSort);
     
     return filtered;
@@ -187,7 +199,168 @@ function sortMembers(membersArray, sortType) {
 }
 
 // ===========================================
-// EXPORTACIÓN A PDF (VERSIÓN CORREGIDA)
+// RENDERIZADO DE MIEMBROS - NUEVO DISEÑO
+// ===========================================
+
+function generateMemberHTML(member) {
+    const flag = getCountryFlag(member.pais);
+    
+    // Preparar especialidades con iconos
+    const specialtiesList = member.sector.map(sect => {
+        const icon = getSectorIcon(sect);
+        return `
+            <div class="specialty-item">
+                <i class="fas ${icon}"></i>
+                <span>${sect}</span>
+            </div>
+        `;
+    }).join('');
+    
+    // Agregar subsectores como badges si existen
+    const subsectorBadges = member.subsector && member.subsector.length > 0 
+        ? member.subsector.map(subsect => 
+            `<span class="subsector-badge">${subsect}</span>`
+        ).join('')
+        : '';
+    
+    // Preparar temas de interés como lista
+    const interestsList = member.areas_interes 
+        ? member.areas_interes.split(',').map(topic => 
+            `<li class="interest-item">${topic.trim()}</li>`
+        ).join('')
+        : '<li class="interest-item">No especificado</li>';
+    
+    // Preparar información de contacto
+    const whatsappNumber = member.whatsapp ? member.whatsapp.replace(/[^0-9]/g, '') : '';
+    const phoneDisplay = member.telefono || member.whatsapp || 'No disponible';
+    
+    return `
+        <div class="member-card">
+            <!-- FILA 1: Foto + Información Básica -->
+            <div class="member-row-header">
+                <!-- Columna 1: Foto (50%) -->
+                <div class="member-photo-column">
+                    <div class="member-photo-container">
+                        <img src="${member.foto}" 
+                             alt="${member.nombre}" 
+                             class="member-photo" 
+                             loading="lazy"
+                             onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(member.nombre)}&size=300&background=0066CC&color=fff&bold=true'">
+                    </div>
+                </div>
+                
+                <!-- Columna 2: Información (50%) -->
+                <div class="member-info-column">
+                    <h3 class="member-name">${member.nombre}</h3>
+                    <p class="member-position">${member.cargo}</p>
+                    <p class="member-institution">${member.institucion}</p>
+                    <span class="member-country">
+                        <span class="flag-emoji">${flag}</span>
+                        <span>${member.pais}</span>
+                    </span>
+                </div>
+            </div>
+            
+            <!-- FILA 2: Especialidades + Temas de Interés -->
+            <div class="member-row-details">
+                <!-- Columna 1: Especialidades -->
+                <div class="member-specialties-box">
+                    <div class="specialties-header">
+                        <i class="fas fa-star"></i>
+                        <span>Especialidades:</span>
+                    </div>
+                    <div class="specialties-list">
+                        ${specialtiesList}
+                        ${subsectorBadges ? `<div style="margin-top: 8px;">${subsectorBadges}</div>` : ''}
+                    </div>
+                </div>
+                
+                <!-- Columna 2: Temas de Interés -->
+                <div class="member-interests-box">
+                    <div class="interests-header">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Temas de Interés:</span>
+                    </div>
+                    <ul class="interests-list">
+                        ${interestsList}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- FILA 3: Información de Contacto -->
+            <div class="member-row-contact">
+                <div class="contact-header">
+                    <i class="fas fa-address-card"></i>
+                    <span>Contacto:</span>
+                </div>
+                <div class="contact-items">
+                    <!-- Email -->
+                    <div class="contact-item contact-item-email">
+                        <i class="fas fa-envelope"></i>
+                        <a href="mailto:${member.correo}" 
+                           class="contact-link"
+                           onclick="registrarEvento('Enviar Correo', '${member.nombre}')">
+                            ${member.correo}
+                        </a>
+                    </div>
+                    
+                    <!-- Teléfono / WhatsApp -->
+                    ${whatsappNumber ? `
+                    <div class="contact-item contact-item-phone">
+                        <i class="fab fa-whatsapp"></i>
+                        <a href="https://wa.me/${whatsappNumber}" 
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="contact-link"
+                           onclick="registrarEvento('WhatsApp', '${member.nombre}')">
+                            ${phoneDisplay}
+                        </a>
+                    </div>
+                    ` : (member.telefono ? `
+                    <div class="contact-item contact-item-phone">
+                        <i class="fas fa-phone"></i>
+                        <a href="tel:${member.telefono}" 
+                           class="contact-link">
+                            ${member.telefono}
+                        </a>
+                    </div>
+                    ` : '')}
+                    
+                    <!-- LinkedIn -->
+                    ${member.linkedin ? `
+                    <div class="contact-item contact-item-linkedin">
+                        <i class="fab fa-linkedin"></i>
+                        <a href="${member.linkedin}" 
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="contact-link"
+                           onclick="registrarEvento('LinkedIn', '${member.nombre}')">
+                            linkedin.com/in/${member.linkedin.split('/in/')[1] || 'perfil'}
+                        </a>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <!-- Botón Ver Detalles Completos -->
+                <button class="btn btn-details" 
+                        onclick="showMemberDetail('${member.id}')">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Ver Detalles Completos</span>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function getSectorIcon(sector) {
+    if (sectorStructure[sector]) {
+        return sectorStructure[sector].icon;
+    }
+    return 'fa-circle';
+}
+
+// ===========================================
+// EXPORTACIÓN A PDF
 // ===========================================
 
 async function downloadPDF() {
@@ -197,17 +370,14 @@ async function downloadPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
-        // Configuración
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 15;
         const lineHeight = 7;
         let yPosition = margin;
         
-        // Configurar fuente para soportar caracteres especiales (acentos, ñ, etc.)
         doc.setFont("helvetica");
         
-        // Función para agregar nueva página si es necesario
         function checkPageBreak(neededSpace = 20) {
             if (yPosition + neededSpace > pageHeight - margin) {
                 doc.addPage();
@@ -217,7 +387,6 @@ async function downloadPDF() {
             return false;
         }
         
-        // Función para agregar texto con word wrap
         function addWrappedText(text, x, y, maxWidth, fontSize = 10) {
             doc.setFontSize(fontSize);
             const lines = doc.splitTextToSize(text, maxWidth);
@@ -231,12 +400,12 @@ async function downloadPDF() {
         }
         
         // Encabezado
-        doc.setFillColor(0, 123, 255);
+        doc.setFillColor(0, 102, 204);
         doc.rect(0, 0, pageWidth, 30, 'F');
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(18);
         doc.setFont(undefined, 'bold');
-        doc.text('Directorio de Redes Sectoriales', pageWidth / 2, 15, { align: 'center' });
+        doc.text('Red de Especialistas', pageWidth / 2, 15, { align: 'center' });
         doc.setFontSize(12);
         doc.setFont(undefined, 'normal');
         doc.text('Proyecto Mesoamerica', pageWidth / 2, 23, { align: 'center' });
@@ -279,7 +448,7 @@ async function downloadPDF() {
         yPosition += lineHeight + 5;
         
         // Línea separadora
-        doc.setDrawColor(0, 123, 255);
+        doc.setDrawColor(0, 102, 204);
         doc.setLineWidth(0.5);
         doc.line(margin, yPosition, pageWidth - margin, yPosition);
         yPosition += 10;
@@ -288,10 +457,9 @@ async function downloadPDF() {
         AppState.filteredMembers.forEach((member, index) => {
             checkPageBreak(60);
             
-            // Número de miembro
             doc.setFontSize(10);
             doc.setFont(undefined, 'bold');
-            doc.setTextColor(0, 123, 255);
+            doc.setTextColor(0, 102, 204);
             doc.text(`${index + 1}.`, margin, yPosition);
             yPosition += lineHeight;
             
@@ -323,12 +491,12 @@ async function downloadPDF() {
             
             // Sectores
             const sectoresText = member.sector.join(', ');
-            doc.setTextColor(0, 123, 255);
+            doc.setTextColor(0, 102, 204);
             doc.setFont(undefined, 'bold');
             doc.text(`Sectores: ${sectoresText}`, margin + 5, yPosition);
             yPosition += lineHeight;
             
-            // Subsectores (si existen)
+            // Subsectores
             if (member.subsector && member.subsector.length > 0) {
                 const subsectoresText = member.subsector.join(', ');
                 doc.setTextColor(0, 100, 180);
@@ -344,19 +512,21 @@ async function downloadPDF() {
             doc.setFontSize(8);
             doc.setFont(undefined, 'normal');
             
-            // Correo
             doc.text(`Correo: ${member.correo}`, margin + 5, yPosition);
             yPosition += lineHeight;
             
-            // Teléfono
             if (member.telefono) {
                 doc.text(`Telefono: ${member.telefono}`, margin + 5, yPosition);
                 yPosition += lineHeight;
             }
             
-            // WhatsApp (solo si existe)
             if (member.whatsapp) {
                 doc.text(`WhatsApp: ${member.whatsapp}`, margin + 5, yPosition);
+                yPosition += lineHeight;
+            }
+            
+            if (member.linkedin) {
+                doc.text(`LinkedIn: ${member.linkedin}`, margin + 5, yPosition);
                 yPosition += lineHeight;
             }
             
@@ -390,7 +560,7 @@ async function downloadPDF() {
                 yPosition += temasHeight;
             }
             
-            // Línea separadora entre miembros
+            // Línea separadora
             yPosition += 3;
             doc.setDrawColor(220, 220, 220);
             doc.setLineWidth(0.3);
@@ -398,21 +568,20 @@ async function downloadPDF() {
             yPosition += 8;
         });
         
-        // Pie de página en todas las páginas
+        // Pie de página
         const totalPages = doc.internal.pages.length - 1;
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
             doc.setFontSize(8);
             doc.setTextColor(150, 150, 150);
             doc.text(
-                `Pagina ${i} de ${totalPages} | Proyecto Mesoamerica - Directorio de Redes Sectoriales`,
+                `Pagina ${i} de ${totalPages} | Proyecto Mesoamerica - Red de Especialistas`,
                 pageWidth / 2,
                 pageHeight - 10,
                 { align: 'center' }
             );
         }
         
-        // Guardar PDF
         const fileName = `Directorio_Redes_PM_${fecha.replace(/ /g, '_')}.pdf`;
         doc.save(fileName);
         
@@ -423,142 +592,6 @@ async function downloadPDF() {
         console.error('Error al generar PDF:', error);
         showToast('Error al generar el PDF. Revisa la consola para mas detalles.');
     }
-}
-
-// ===========================================
-// RENDERIZADO DE MIEMBROS
-// ===========================================
-
-function generateMemberHTML(member) {
-    const sectorBadges = member.sector.map(sect => 
-        `<span class="badge badge-primary">
-            <i class="fas ${getSectorIcon(sect)}"></i> ${sect}
-        </span>`
-    ).join('');
-    
-    // Agregar badges de subsectores si existen
-    const subsectorBadges = member.subsector && member.subsector.length > 0 
-        ? member.subsector.map(subsect => 
-            `<span class="badge badge-info">
-                <i class="fas fa-tag"></i> ${subsect}
-            </span>`
-        ).join('')
-        : '';
-    
-    const whatsappBtn = member.whatsapp ? 
-        `<a href="https://wa.me/${member.whatsapp.replace(/[^0-9]/g, '')}" 
-            target="_blank" 
-            class="btn btn-success btn-sm"
-            onclick="registrarEvento('WhatsApp', '${member.nombre}')">
-            <i class="fab fa-whatsapp"></i> WhatsApp
-        </a>` : '';
-    
-    if (AppState.currentView === 'grid') {
-        return `
-            <div class="member-card">
-                <div class="member-photo-container">
-                    <img src="${member.foto}" alt="${member.nombre}" class="member-photo" loading="lazy">
-                </div>
-                <div class="member-info">
-                    <h5 class="member-name">${member.nombre}</h5>
-                    <p class="member-position">${member.cargo}</p>
-                    <p class="member-institution">${member.institucion}</p>
-                    <span class="member-country">
-                        <i class="fas fa-map-marker-alt"></i> ${member.pais}
-                    </span>
-                    <div class="member-sectors">${sectorBadges} ${subsectorBadges}</div>
-                    <div class="member-contact">
-                        <div class="contact-item">
-                            <i class="fas fa-envelope"></i>
-                            <span>${member.correo}</span>
-                        </div>
-                        ${member.telefono ? `
-                        <div class="contact-item">
-                            <i class="fas fa-phone"></i>
-                            <span>${member.telefono}</span>
-                        </div>` : ''}
-                    </div>
-                    <div class="member-actions">
-                        <button class="btn btn-info btn-sm" 
-                                onclick="showMemberDetail('${member.id}')">
-                            <i class="fas fa-eye"></i> Ver Detalle
-                        </button>
-                        <a href="mailto:${member.correo}" 
-                           class="btn btn-primary btn-sm"
-                           onclick="registrarEvento('Enviar Correo', '${member.nombre}')">
-                            <i class="fas fa-envelope"></i> Enviar Correo
-                        </a>
-                        ${whatsappBtn}
-                        <button class="btn btn-secondary btn-sm" 
-                                onclick="shareContact('${member.id}')">
-                            <i class="fas fa-copy"></i> Copiar Información
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-    } else {
-        return `
-            <div class="member-card">
-                <div class="member-photo-container">
-                    <img src="${member.foto}" alt="${member.nombre}" class="member-photo" loading="lazy">
-                </div>
-                <div class="member-info">
-                    <h5 class="member-name">${member.nombre}</h5>
-                    <p class="member-position">${member.cargo}</p>
-                    <p class="member-institution">${member.institucion}</p>
-                    <span class="member-country">
-                        <i class="fas fa-map-marker-alt"></i> ${member.pais}
-                    </span>
-                    <div class="member-sectors">${sectorBadges} ${subsectorBadges}</div>
-                    <div class="member-contact">
-                        <div class="contact-item">
-                            <i class="fas fa-envelope"></i>
-                            <span>${member.correo}</span>
-                        </div>
-                        ${member.telefono ? `
-                        <div class="contact-item">
-                            <i class="fas fa-phone"></i>
-                            <span>${member.telefono}</span>
-                        </div>` : ''}
-                    </div>
-                    <div class="member-details">
-                        <div class="detail-section">
-                            <div class="detail-label">Áreas de Interés:</div>
-                            <div class="detail-content">${member.areas_interes}</div>
-                        </div>
-                        <div class="detail-section">
-                            <div class="detail-label">Temas de Apoyo:</div>
-                            <div class="detail-content">${member.temas_apoyo}</div>
-                        </div>
-                    </div>
-                    <div class="member-actions">
-                        <button class="btn btn-info btn-sm" 
-                                onclick="showMemberDetail('${member.id}')">
-                            <i class="fas fa-eye"></i> Ver Detalle Completo
-                        </button>
-                        <a href="mailto:${member.correo}" 
-                           class="btn btn-primary btn-sm"
-                           onclick="registrarEvento('Enviar Correo', '${member.nombre}')">
-                            <i class="fas fa-envelope"></i> Enviar Correo
-                        </a>
-                        ${whatsappBtn}
-                        <button class="btn btn-secondary btn-sm" 
-                                onclick="shareContact('${member.id}')">
-                            <i class="fas fa-copy"></i> Copiar Información
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-}
-
-function getSectorIcon(sector) {
-    if (sectorStructure[sector]) {
-        return sectorStructure[sector].icon;
-    }
-    return 'fa-circle';
 }
 
 // ===========================================
@@ -698,7 +731,6 @@ function updateResultsCount() {
 function updateSectorCounts() {
     document.getElementById('count-all').textContent = members.length;
     
-    // Contar miembros por sector
     Object.keys(sectorStructure).forEach(sector => {
         let count = 0;
         members.forEach(member => {
@@ -712,7 +744,6 @@ function updateSectorCounts() {
             countElement.textContent = count;
         }
         
-        // Contar subsectores
         if (sectorStructure[sector].subsectors.length > 0) {
             sectorStructure[sector].subsectors.forEach(subsector => {
                 let subCount = 0;
@@ -738,14 +769,13 @@ function updateStatistics() {
 }
 
 // ===========================================
-// RENDERIZADO DEL SIDEBAR CON SUBSECTORES
+// RENDERIZADO DEL SIDEBAR
 // ===========================================
 
 function renderSectorsSidebar() {
     const sectorsContainer = document.getElementById('sectors');
     sectorsContainer.innerHTML = '';
     
-    // Botón "Todos"
     const allItem = document.createElement('li');
     allItem.setAttribute('data-sector', 'all');
     allItem.className = 'list-group-item active sector-item';
@@ -755,7 +785,6 @@ function renderSectorsSidebar() {
     `;
     sectorsContainer.appendChild(allItem);
     
-    // Iterar sobre cada sector
     Object.keys(sectorStructure).forEach(sector => {
         const sectorData = sectorStructure[sector];
         const hasSubsectors = sectorData.subsectors.length > 0;
@@ -776,7 +805,6 @@ function renderSectorsSidebar() {
         
         sectorsContainer.appendChild(sectorItem);
         
-        // Si tiene subsectores, crear la lista desplegable
         if (hasSubsectors) {
             const subsectorsList = document.createElement('ul');
             subsectorsList.className = 'subsectors-list';
@@ -822,6 +850,8 @@ function showMemberDetail(memberId) {
     
     modalTitle.textContent = member.nombre;
     
+    const flag = getCountryFlag(member.pais);
+    
     const sectorBadges = member.sector.map(sect => 
         `<span class="badge badge-primary mr-1 mb-1">
             <i class="fas ${getSectorIcon(sect)}"></i> ${sect}
@@ -836,18 +866,16 @@ function showMemberDetail(memberId) {
         ).join('')
         : '';
     
-    const whatsappBtn = member.whatsapp ? 
-        `<a href="https://wa.me/${member.whatsapp.replace(/[^0-9]/g, '')}" 
-            target="_blank" 
-            class="btn btn-success"
-            onclick="registrarEvento('WhatsApp Modal', '${member.nombre}')">
-            <i class="fab fa-whatsapp"></i> Contactar por WhatsApp
-        </a>` : '';
+    const whatsappNumber = member.whatsapp ? member.whatsapp.replace(/[^0-9]/g, '') : '';
+    const linkedinUrl = member.linkedin || '#';
     
     modalBody.innerHTML = `
         <div class="modal-member-detail">
             <div class="modal-photo-section">
-                <img src="${member.foto}" alt="${member.nombre}" class="modal-member-photo">
+                <img src="${member.foto}" 
+                     alt="${member.nombre}" 
+                     class="modal-member-photo"
+                     onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(member.nombre)}&size=300&background=0066CC&color=fff&bold=true'">
             </div>
             
             <div class="modal-info-grid">
@@ -864,7 +892,8 @@ function showMemberDetail(memberId) {
                 <div class="modal-info-item">
                     <div class="modal-info-label">País</div>
                     <div class="modal-info-value">
-                        <i class="fas fa-map-marker-alt text-primary"></i> ${member.pais}
+                        <span style="font-size: 1.5rem; margin-right: 8px;">${flag}</span>
+                        ${member.pais}
                     </div>
                 </div>
                 
@@ -885,6 +914,14 @@ function showMemberDetail(memberId) {
                 <div class="modal-info-item">
                     <div class="modal-info-label">WhatsApp</div>
                     <div class="modal-info-value">${member.whatsapp}</div>
+                </div>` : ''}
+                
+                ${member.linkedin ? `
+                <div class="modal-info-item">
+                    <div class="modal-info-label">LinkedIn</div>
+                    <div class="modal-info-value">
+                        <a href="${member.linkedin}" target="_blank" rel="noopener noreferrer">Ver perfil</a>
+                    </div>
                 </div>` : ''}
             </div>
             
@@ -909,17 +946,31 @@ function showMemberDetail(memberId) {
                 <div class="modal-info-value">${member.temas_apoyo}</div>
             </div>
             
-            <div class="mt-4 text-center">
+            <div class="mt-4 text-center contact-methods">
                 <a href="mailto:${member.correo}" 
-                   class="btn btn-primary mr-2"
+                   class="contact-btn contact-btn-email"
                    onclick="registrarEvento('Enviar Correo Modal', '${member.nombre}')">
-                    <i class="fas fa-envelope"></i> Enviar Correo
+                    <i class="fas fa-envelope"></i>
+                    <span>Enviar Correo</span>
                 </a>
-                ${whatsappBtn}
-                <button class="btn btn-secondary ml-2" 
-                        onclick="shareContact('${member.id}')">
-                    <i class="fas fa-copy"></i> Copiar Información
-                </button>
+                ${whatsappNumber ? `
+                <a href="https://wa.me/${whatsappNumber}" 
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="contact-btn contact-btn-whatsapp"
+                   onclick="registrarEvento('WhatsApp Modal', '${member.nombre}')">
+                    <i class="fab fa-whatsapp"></i>
+                    <span>WhatsApp</span>
+                </a>` : ''}
+                ${member.linkedin ? `
+                <a href="${member.linkedin}" 
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="contact-btn contact-btn-linkedin"
+                   onclick="registrarEvento('LinkedIn Modal', '${member.nombre}')">
+                    <i class="fab fa-linkedin"></i>
+                    <span>LinkedIn</span>
+                </a>` : ''}
             </div>
         </div>
     `;
@@ -947,6 +998,11 @@ Teléfono: ${member.telefono}`;
     if (member.whatsapp) {
         contactText += `
 WhatsApp: ${member.whatsapp}`;
+    }
+    
+    if (member.linkedin) {
+        contactText += `
+LinkedIn: ${member.linkedin}`;
     }
 
     contactText = contactText.trim();
@@ -1011,12 +1067,10 @@ DOM.clearSearch.addEventListener('click', () => {
     DOM.searchInput.focus();
 });
 
-// Event delegation para sectores y subsectores
 DOM.sectors.addEventListener('click', (e) => {
     const target = e.target.closest('.sector-item, .subsector-item');
     if (!target) return;
     
-    // Si es un sector con subsectores, toggle el dropdown
     if (target.classList.contains('sector-item') && target.classList.contains('has-subsectors')) {
         const sectorHeader = target.querySelector('.sector-header');
         if (e.target.closest('.sector-header') === sectorHeader) {
@@ -1033,7 +1087,6 @@ DOM.sectors.addEventListener('click', (e) => {
                 }
             }
             
-            // Seleccionar el sector principal
             document.querySelectorAll('#sectors .list-group-item').forEach(item => {
                 item.classList.remove('active');
             });
@@ -1044,7 +1097,6 @@ DOM.sectors.addEventListener('click', (e) => {
             registrarEvento('Filtro Sector', sector);
         }
     } 
-    // Si es un sector sin subsectores
     else if (target.classList.contains('sector-item')) {
         document.querySelectorAll('#sectors .list-group-item').forEach(item => {
             item.classList.remove('active');
@@ -1055,7 +1107,6 @@ DOM.sectors.addEventListener('click', (e) => {
         showMembers(sector, 'all');
         registrarEvento('Filtro Sector', sector);
     }
-    // Si es un subsector
     else if (target.classList.contains('subsector-item')) {
         document.querySelectorAll('#sectors .list-group-item').forEach(item => {
             item.classList.remove('active');
@@ -1087,7 +1138,6 @@ DOM.viewList.addEventListener('click', () => {
     registrarEvento('Cambio Vista', 'Lista');
 });
 
-// Event listener para botón de descarga PDF
 if (DOM.downloadPdfBtn) {
     DOM.downloadPdfBtn.addEventListener('click', () => {
         downloadPDF();
@@ -1103,7 +1153,6 @@ $('#memberModal').on('hidden.bs.modal', function () {
 // ===========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Renderizar sidebar con sectores y subsectores
     renderSectorsSidebar();
     
     AppState.filteredMembers = filterMembers();
@@ -1113,12 +1162,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     displayMembers();
     
-    console.log('✅ Directorio de Redes Sectoriales cargado correctamente');
+    console.log('✅ Red de Especialistas cargado correctamente');
     console.log(`👥 Total de miembros: ${members.length}`);
     console.log(`🌎 Países representados: ${getUniqueCountries().length}`);
 });
 
-// Hacer funciones globales para onclick en HTML
+// Hacer funciones globales
 window.registrarEvento = registrarEvento;
 window.showMemberDetail = showMemberDetail;
 window.shareContact = shareContact;

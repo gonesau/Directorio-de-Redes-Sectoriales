@@ -3,13 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Directorio de Redes Sectoriales del Proyecto Mesoamérica">
-    <title>Directorio de Redes Sectoriales - Proyecto Mesoamérica</title>
+    <meta name="description" content="Red de Especialistas del Proyecto Mesoamérica">
+    <title>Red de Especialistas - Proyecto Mesoamérica</title>
+    
+    <!-- Preconnect para fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Google Fonts - Tipografías modernas y profesionales -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <!-- Estilos personalizados -->
     <link rel="stylesheet" href="directorio-styles.css">
 </head>
@@ -22,8 +31,25 @@
          class="banner-img"
          loading="lazy">
     <div class="banner-overlay">
-        <h1 class="banner-title">Directorio de Redes Sectoriales</h1>
+        <h1 class="banner-title">Red de Especialistas</h1>
         <p class="banner-subtitle">Proyecto Mesoamérica</p>
+    </div>
+</div>
+
+<!-- Descripción del Directorio -->
+<div class="directory-description">
+    <div class="container">
+        <div class="description-card">
+            <div class="description-icon">
+                <i class="fas fa-users-between-lines"></i>
+            </div>
+            <div class="description-content">
+                <h2 class="description-title">Sobre este Directorio</h2>
+                <p class="description-text">
+                    Este espacio reúne información de contacto y áreas de especialización de los profesionales que integran las redes sectoriales del Proyecto Mesoamérica, facilitando la colaboración técnica, el intercambio de información y la articulación regional entre los enlaces de <strong>Energía</strong>, <strong>Transformación Digital</strong>, <strong>Transporte</strong> y <strong>Facilitación del Comercio</strong> + enlaces del <strong>socioambiental</strong>.
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -37,14 +63,16 @@
                    target="_blank" 
                    class="btn btn-primary btn-block btn-new-register mb-3"
                    onclick="registrarEvento('Solicitar Nuevo Registro', 'Clic')">
-                    <i class="fas fa-user-plus"></i> Solicitar Nuevo Registro
+                    <i class="fas fa-user-plus"></i> 
+                    <span>Solicitar Nuevo Registro</span>
                 </a>
 
                 <!-- Botón Descargar PDF -->
                 <button id="downloadPdfBtn" 
                         class="btn btn-danger btn-block btn-download-pdf mb-4"
                         title="Descargar directorio en PDF con filtros aplicados">
-                    <i class="fas fa-file-pdf"></i> Descargar Directorio PDF
+                    <i class="fas fa-file-pdf"></i> 
+                    <span>Descargar Directorio PDF</span>
                 </button>
 
                 <h5 class="categories-title">
@@ -56,7 +84,9 @@
 
                 <!-- Estadísticas Rápidas -->
                 <div class="quick-stats mt-4">
-                    <h6 class="stats-title"><i class="fas fa-chart-bar"></i> Estadísticas</h6>
+                    <h6 class="stats-title">
+                        <i class="fas fa-chart-bar"></i> Estadísticas
+                    </h6>
                     <div class="stat-item">
                         <span class="stat-label">Total de Miembros:</span>
                         <span class="stat-value" id="totalMembers">0</span>
@@ -165,7 +195,7 @@
 
 <!-- Modal de Detalle de Miembro -->
 <div class="modal fade" id="memberModal" tabindex="-1" role="dialog" aria-labelledby="modalMemberName" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalMemberName">Detalle del Miembro</h5>
