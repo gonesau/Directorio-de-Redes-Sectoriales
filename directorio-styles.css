@@ -1,5 +1,5 @@
 /**
- * Red de Especialistas - PROYECTO MESOAMÉRICA
+ * DIRECTORIO DE REDES SECTORIALES - PROYECTO MESOAMÉRICA
  * ========================================================
  * Estilos modernos 2026 - Diseño inspirado en business cards profesionales
  * Version: 2.0 (Refactorización completa)
@@ -167,11 +167,11 @@ body {
 }
 
 /* ===========================================
-   DESCRIPCIÓN DEL DIRECTORIO - NUEVO
+   DESCRIPCIÓN DEL DIRECTORIO
    =========================================== */
 .directory-description {
-    background: white;
-    padding: var(--spacing-12) 0;
+    background: transparent;
+    padding: var(--spacing-8) 0 var(--spacing-6) 0;
     position: relative;
     z-index: 5;
 }
@@ -179,56 +179,56 @@ body {
 .description-card {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: var(--spacing-8);
-    align-items: start;
-    max-width: 1200px;
+    gap: var(--spacing-5);
+    align-items: center;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: var(--spacing-8);
-    background: linear-gradient(135deg, var(--primary-blue-light) 0%, white 100%);
-    border-radius: var(--radius-2xl);
-    border: 2px solid var(--gray-200);
-    box-shadow: var(--shadow-xl);
-    transition: all var(--transition-base);
+    padding: 0 var(--spacing-4);
+    background: transparent;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    transition: none;
 }
 
 .description-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-2xl);
+    transform: none;
+    box-shadow: none;
 }
 
 .description-icon {
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
     background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-teal) 100%);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-md);
     flex-shrink: 0;
 }
 
 .description-icon i {
-    font-size: 2.5rem;
+    font-size: 2rem;
     color: white;
 }
 
 .description-content {
-    padding: var(--spacing-2) 0;
+    padding: 0;
 }
 
 .description-title {
     font-family: var(--font-display);
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--gray-900);
-    margin-bottom: var(--spacing-4);
+    margin-bottom: var(--spacing-3);
     letter-spacing: -0.01em;
 }
 
 .description-text {
-    font-size: 1.0625rem;
-    line-height: 1.75;
+    font-size: 1.2rem;
+    line-height: 1.6;
     color: var(--gray-700);
     margin: 0;
 }
@@ -1360,32 +1360,32 @@ body {
     }
     
     .directory-description {
-        padding: var(--spacing-8) 0;
+        padding: var(--spacing-6) 0 var(--spacing-4) 0;
     }
     
     .description-card {
         grid-template-columns: 1fr;
-        gap: var(--spacing-5);
-        padding: var(--spacing-6);
+        gap: var(--spacing-4);
+        padding: 0 var(--spacing-4);
         text-align: center;
     }
     
     .description-icon {
-        width: 64px;
-        height: 64px;
+        width: 56px;
+        height: 56px;
         margin: 0 auto;
     }
     
     .description-icon i {
-        font-size: 2rem;
+        font-size: 1.75rem;
     }
     
     .description-title {
-        font-size: 1.5rem;
+        font-size: 1.375rem;
     }
     
     .description-text {
-        font-size: 1rem;
+        font-size: 0.9375rem;
     }
     
     .search-controls {
@@ -1456,7 +1456,17 @@ body {
     }
     
     .description-text {
-        font-size: 0.9375rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+    
+    .description-icon {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .description-icon i {
+        font-size: 1.5rem;
     }
     
     .member-name {
